@@ -37,6 +37,7 @@ jobs:
           docker build . --file Dockerfile --tag docker.io/${{ secrets.DOCKER_USERNAME }}/controller-spread-scheduler:${{ env.BUILD_PIN }}
 
       - name: Tag build to new version
+        if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
           docker tag \
@@ -44,6 +45,7 @@ jobs:
             docker.io/${{ secrets.DOCKER_USERNAME }}/controller-spread-scheduler:${{ env.VERSION }}
 
       - name: Push the Docker image tags
+        if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
           docker push docker.io/${{ secrets.DOCKER_USERNAME }}/controller-spread-scheduler:${{ env.BUILD_PIN }}
