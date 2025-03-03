@@ -1,0 +1,50 @@
+name: Build and Publish Docker Image
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: set_tag
+        shell: bash
+        run: |
+          VERSION=1.30.5
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Version tag: ${VERSION}"
+          BUILD_PIN=${VERSION}-$(date +%s)
+          echo "BUILD_PIN=${BUILD_PIN}" >> $GITHUB_ENV
+          echo "Pin tag: ${BUILD_PIN}"
+
+      - name: Log into Docker Hub
+        shell: bash
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build the Docker image
+        shell: bash
+        run: |
+          docker build . --file Dockerfile --tag docker.io/${{ secrets.DOCKER_USERNAME }}/controller-spread-scheduler:${{ env.BUILD_PIN }}
+
+      - name: Tag build to new version
+        shell: bash
+        run: |
+          docker tag \
+            docker.io/${{ secrets.DOCKER_USERNAME }}/controller-spread-scheduler:${{ env.BUILD_PIN }} \
+            docker.io/${{ secrets.DOCKER_USERNAME }}/controller-spread-scheduler:${{ env.VERSION }}
+
+      - name: Push the Docker image tags
+        shell: bash
+        run: |
+          docker push docker.io/${{ secrets.DOCKER_USERNAME }}/controller-spread-scheduler:${{ env.BUILD_PIN }}
+          docker push docker.io/${{ secrets.DOCKER_USERNAME }}/controller-spread-scheduler:${{ env.VERSION }}

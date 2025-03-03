@@ -3,6 +3,10 @@
 This project implements an out-of-tree Kubernetes scheduler plugin using the scheduler framework.  
 The **ControllerSpreadFilter** plugin prevents all pods from the same controller (ReplicaSet, StatefulSet, Job, or CronJob) with more than one desired replica/parallelism from being scheduled on a single node.
 
+## Public images
+
+https://hub.docker.com/r/eyz77/controller-spread-scheduler/tags
+
 ## Overview
 
 The Controller Spread Scheduler enforces a minimum level of fault tolerance by ensuring pods belonging to the same controller are distributed across multiple nodes. This is particularly useful for:
@@ -32,7 +36,7 @@ It examines pod owner references during scheduling to identify the controller, f
 ## Installation
 
 ### Prerequisites
-- Go 1.22+
+- Go 1.24+
 - Docker or another container builder
 - Access to a Kubernetes cluster (1.30.5)
 - kubectl configured for your cluster
@@ -47,7 +51,7 @@ It examines pod owner references during scheduling to identify the controller, f
 
 2. Build the binary:
    ```
-   CGO_ENABLED=0 go build -a -o custom-scheduler ./cmd/scheduler
+   CGO_ENABLED=0 go build -a -o controller-spread-scheduler ./cmd/scheduler
    ```
 
 3. Build and push the container image:
@@ -212,9 +216,9 @@ controller-spread-scheduler/
 
 This scheduler plugin is compatible with:
 - Kubernetes 1.30.5
-- Go 1.22 (required for building)
+- Go 1.24 (required for building)
 - kubescheduler.config.k8s.io/v1 API
 
 ## License
 
-[Add your license information here]
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
