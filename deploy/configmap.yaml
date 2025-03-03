@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: controller-spread-scheduler-config
+  namespace: kube-system
+data:
+  controller-spread-scheduler.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    schedulerName: controller-spread-scheduler
+    clientConnection:
+      kubeconfig: "/etc/kubernetes/scheduler.conf"
+    leaderElection:
+      leaderElect: true
+    profiles:
+    - schedulerName: controller-spread-scheduler
+      plugins:
+        filter:
+          enabled:
+          - name: ControllerSpreadFilter
+      pluginConfig:
+      - name: ControllerSpreadFilter
+        args: {}

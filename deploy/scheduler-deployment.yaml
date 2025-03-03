@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-spread-scheduler
+  namespace: kube-system
+  labels:
+    component: controller-spread-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: controller-spread-scheduler
+  template:
+    metadata:
+      labels:
+        component: controller-spread-scheduler
+    spec:
+      serviceAccountName: kube-scheduler
+      containers:
+      - name: kube-scheduler
+        image: controller-spread-scheduler:v1.30.5
+        imagePullPolicy: IfNotPresent
+        command:
+        - kube-scheduler
+        - --config=/etc/kubernetes/controller-spread-scheduler.yaml
+        volumeMounts:
+        - name: scheduler-config
+          mountPath: /etc/kubernetes/controller-spread-scheduler.yaml
+          subPath: controller-spread-scheduler.yaml
+      volumes:
+      - name: scheduler-config
+        configMap:
+          name: controller-spread-scheduler-config
+          items:
+          - key: controller-spread-scheduler.yaml
+            path: controller-spread-scheduler.yaml
