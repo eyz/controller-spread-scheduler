@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 	// Upstream scheduler framework.
 	"k8s.io/kubernetes/pkg/scheduler/framework"
+	"math"
 )
 
 const (
@@ -93,7 +94,7 @@ func getControllerInfo(pod *v1.Pod) (ControllerInfo, bool) {
 
 // parseMinHostsAnnotation parses the annotation value into an int32; defaults to 2.
 func parseMinHostsAnnotation(val string) int32 {
-	if parsed, err := strconv.Atoi(val); err == nil && parsed >= 2 {
+	if parsed, err := strconv.ParseInt(val, 10, 32); err == nil && parsed >= 2 && parsed <= math.MaxInt32 {
 		return int32(parsed)
 	}
 	return 2
