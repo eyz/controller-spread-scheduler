@@ -10,6 +10,7 @@ package controllerspread
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 
 	// Core API types.
@@ -17,21 +18,20 @@ import (
 	// For label operations.
 	"k8s.io/apimachinery/pkg/labels"
 	// For runtime conversion.
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	// For managing sets.
 	"k8s.io/apimachinery/pkg/util/sets"
 	// Listers.
-	podlister "k8s.io/client-go/listers/core/v1"
 	rsLister "k8s.io/client-go/listers/apps/v1"
 	stsLister "k8s.io/client-go/listers/apps/v1"
-	jobLister "k8s.io/client-go/listers/batch/v1"
 	cronJobLister "k8s.io/client-go/listers/batch/v1"
+	jobLister "k8s.io/client-go/listers/batch/v1"
+	podlister "k8s.io/client-go/listers/core/v1"
 	// klog for logging.
 	"k8s.io/klog/v2"
 	// Upstream scheduler framework.
 	"k8s.io/kubernetes/pkg/scheduler/framework"
-	"math"
 )
 
 const (
@@ -64,12 +64,12 @@ type ControllerInfo struct {
 
 // ControllerSpreadFilter implements the framework.Plugin interface.
 type ControllerSpreadFilter struct {
-	podLister      podlister.PodLister
-	rsLister       rsLister.ReplicaSetLister
-	stsLister      stsLister.StatefulSetLister
-	jobLister      jobLister.JobLister
-	cronJobLister  cronJobLister.CronJobLister
-	args           *ControllerSpreadArgs
+	podLister     podlister.PodLister
+	rsLister      rsLister.ReplicaSetLister
+	stsLister     stsLister.StatefulSetLister
+	jobLister     jobLister.JobLister
+	cronJobLister cronJobLister.CronJobLister
+	args          *ControllerSpreadArgs
 }
 
 // getControllerInfo extracts controller information from a pod's owner references.
@@ -123,12 +123,12 @@ func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) 
 	}
 
 	return &ControllerSpreadFilter{
-		podLister:      handle.SharedInformerFactory().Core().V1().Pods().Lister(),
-		rsLister:       handle.SharedInformerFactory().Apps().V1().ReplicaSets().Lister(),
-		stsLister:      handle.SharedInformerFactory().Apps().V1().StatefulSets().Lister(),
-		jobLister:      handle.SharedInformerFactory().Batch().V1().Jobs().Lister(),
-		cronJobLister:  handle.SharedInformerFactory().Batch().V1().CronJobs().Lister(),
-		args:           args,
+		podLister:     handle.SharedInformerFactory().Core().V1().Pods().Lister(),
+		rsLister:      handle.SharedInformerFactory().Apps().V1().ReplicaSets().Lister(),
+		stsLister:     handle.SharedInformerFactory().Apps().V1().StatefulSets().Lister(),
+		jobLister:     handle.SharedInformerFactory().Batch().V1().Jobs().Lister(),
+		cronJobLister: handle.SharedInformerFactory().Batch().V1().CronJobs().Lister(),
+		args:          args,
 	}, nil
 }
 
@@ -146,7 +146,7 @@ func (csf *ControllerSpreadFilter) Filter(ctx context.Context, cycleState *frame
 
 	var desired int32
 	minHostsVal := int32(2)
-	annotations := map[string]string{}
+	var annotations map[string]string
 
 	switch controller.Type {
 	case ReplicaSetType:
@@ -259,9 +259,4 @@ func isOwnedByController(pod *v1.Pod, controller ControllerInfo) bool {
 		}
 	}
 	return false
-}
-
-// Register the ControllerSpreadFilter plugin with the scheduler framework.
-func init() {
-    framework.RegisterPlugin(Name, New)
 }
