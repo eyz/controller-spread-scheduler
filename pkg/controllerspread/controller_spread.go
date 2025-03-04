@@ -18,16 +18,16 @@ import (
 	// For label operations.
 	"k8s.io/apimachinery/pkg/labels"
 	// For runtime conversion.
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	// For managing sets.
 	"k8s.io/apimachinery/pkg/util/sets"
 	// Listers.
+	podlister "k8s.io/client-go/listers/core/v1"
 	rsLister "k8s.io/client-go/listers/apps/v1"
 	stsLister "k8s.io/client-go/listers/apps/v1"
-	cronJobLister "k8s.io/client-go/listers/batch/v1"
 	jobLister "k8s.io/client-go/listers/batch/v1"
-	podlister "k8s.io/client-go/listers/core/v1"
+	cronJobLister "k8s.io/client-go/listers/batch/v1"
 	// klog for logging.
 	"k8s.io/klog/v2"
 	// Upstream scheduler framework.
@@ -109,7 +109,7 @@ func min(a, b int32) int32 {
 }
 
 // New is the factory for ControllerSpreadFilter.
-// It implements the plugin factory interface.
+// It implements framework.PluginFactory.
 func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
 	args := &ControllerSpreadArgs{}
 	if obj != nil {
@@ -261,7 +261,8 @@ func isOwnedByController(pod *v1.Pod, controller ControllerInfo) bool {
 	return false
 }
 
-// Export the plugin registry so it can be merged with the scheduler’s built-in registry.
+// Export the plugin registry so that your scheduler binary can merge it.
+// Your scheduler must be patched or built to merge this registry into its default registry.
 var PluginRegistry = map[string]func(runtime.Object, framework.Handle) (framework.Plugin, error){
 	Name: New,
 }
