@@ -260,3 +260,8 @@ func isOwnedByController(pod *v1.Pod, controller ControllerInfo) bool {
 	}
 	return false
 }
+
+// Register the ControllerSpreadFilter plugin with the scheduler framework.
+func init() {
+    framework.RegisterPlugin(Name, New)
+}
