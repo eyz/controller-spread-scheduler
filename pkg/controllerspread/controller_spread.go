@@ -109,7 +109,7 @@ func min(a, b int32) int32 {
 }
 
 // New is the factory for ControllerSpreadFilter.
-// It implements framework.PluginFactory.
+// It implements the plugin factory interface.
 func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
 	args := &ControllerSpreadArgs{}
 	if obj != nil {
@@ -146,7 +146,7 @@ func (csf *ControllerSpreadFilter) Filter(ctx context.Context, cycleState *frame
 
 	var desired int32
 	minHostsVal := int32(2)
-	var annotations map[string]string
+	annotations := map[string]string{}
 
 	switch controller.Type {
 	case ReplicaSetType:
@@ -259,4 +259,9 @@ func isOwnedByController(pod *v1.Pod, controller ControllerInfo) bool {
 		}
 	}
 	return false
+}
+
+// Export the plugin registry so it can be merged with the scheduler’s built-in registry.
+var PluginRegistry = map[string]func(runtime.Object, framework.Handle) (framework.Plugin, error){
+	Name: New,
 }
